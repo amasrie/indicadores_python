@@ -67,7 +67,7 @@ plt.ylabel('Horas')
 plt.xlabel('Años')
 plt.savefig('plots/correlation_years_hours.png')
 
-# 3. Correlación entre nivel educativo y tiempo que se tarda en aprender algo nuevo
+# 3. Relación entre nivel educativo y tiempo que se tarda en aprender algo nuevo
 plt.figure(figsize=(10, 10))
 plt.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
 df_education = df_survey[["EdLevel", "NEWLearn"]].dropna()
@@ -88,15 +88,15 @@ df_education['NEWLearn'].replace({
 	"Once every few years": "En unos años",
 	"Once a decade": "Tras una década"
 }, inplace=True)
-
-table = df_education.pivot_table(index="EdLevel",columns="NEWLearn",aggfunc=lambda x:len(x))
+table = pd.crosstab(index=df_education["EdLevel"],columns=df_education["NEWLearn"])
+print(table)
 ax = sns.heatmap(table, linewidth=0.5)
 plt.title('Mapa de calor entre educación y aprendizaje de nuevas herramientas')
 plt.ylabel('Educación')
 plt.xlabel('Tiempo')
 plt.savefig('plots/correlation_education.png')
 
-# 4. Correlación entre satisfacción de trabajo actual y la búsqueda de un nuevo empleo
+# 4. Relación entre satisfacción de trabajo actual y la búsqueda de un nuevo empleo
 
 
 
