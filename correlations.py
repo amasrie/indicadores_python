@@ -15,7 +15,6 @@ df_survey = pd.read_csv ('dataset/survey_results_public.csv', sep=',')
 
 # Se obtienen las edades y tipo de programadores, ignorando NaN
 df_age_type = df_survey[["Age", "MainBranch"]].dropna()
-print(df_age_type["MainBranch"].unique())
 
 df_age_type["MainBranch"].replace({
 	"I am a developer by profession": "Desarrollador", 
@@ -67,6 +66,30 @@ plt.ylabel('Horas')
 plt.xlabel('Años')
 plt.savefig('plots/correlation_years_hours.png')
 
+# Conteo empleabilidad
+df_employment = df_survey[["MainBranch", "Employment"]].dropna()
+df_employment["MainBranch"].replace({
+	"I am a developer by profession": "Desarrollador", 
+	"I used to be a developer by profession, but no longer am": "Retirado", 
+	"I am not primarily a developer, but I write code sometimes as part of my work": "Complemento", 
+	"I am a student who is learning to code": "Estudiante", 
+	"I code primarily as a hobby": "Fanático"}, inplace=True)
+df_employment["Employment"].replace({
+	"Student": "Estudiante", 
+	"Independent contractor, freelancer, or self-employed": "Independiente", 
+	"Employed full-time": "Tiempo completo", 
+	"Not employed, but looking for work": "Buscando", 
+	"Retired": "Retirado",
+	"Not employed, and not looking for work": "No aplica",
+	"Employed part-time": "Tiempo parcial"}, inplace=True)
+df_employment = df_employment.groupby('MainBranch')['Employment'].value_counts().sort_index()
+branches = np.unique(df_employment.index.get_level_values('MainBranch'))
+employments = np.unique(df_employment.index.get_level_values('Employment'))
+pairs_branches_employments = [(a, b) for a in branches for b in employments]
+df_employment = df_employment.reindex(pairs_branches_employments, fill_value=0)
+print(df_employment)
+plt.figure()
+
 # 3. Relación entre nivel educativo y tiempo que se tarda en aprender algo nuevo
 plt.figure(figsize=(10, 10))
 plt.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
@@ -88,16 +111,39 @@ df_education['NEWLearn'].replace({
 	"Once every few years": "En unos años",
 	"Once a decade": "Tras una década"
 }, inplace=True)
+print(df_education['EdLevel'].value_counts())
 table = pd.crosstab(index=df_education["EdLevel"],columns=df_education["NEWLearn"])
+# Conteo de educación
 print(table)
 ax = sns.heatmap(table, linewidth=0.5)
 plt.title('Mapa de calor entre educación y aprendizaje de nuevas herramientas')
 plt.ylabel('Educación')
 plt.xlabel('Tiempo')
-plt.savefig('plots/correlation_education.png')
+plt.savefig('plots/relation_learning_education.png')
 
 # 4. Relación entre satisfacción de trabajo actual y la búsqueda de un nuevo empleo
-
-
+plt.figure()
+df_job = df_survey[["JobSat", "JobSeek"]].dropna()
+df_job['JobSat'].replace({ 
+	"Slightly satisfied": 4, 
+	"Very dissatisfied": 1,
+	"Slightly dissatisfied": 2,
+	"Very satisfied": 5,
+	"Neither satisfied nor dissatisfied": 3
+}, inplace=True)
+df_job['JobSeek'].replace({ 
+	"I am not interested in new job opportunities": "No busca", 
+	"I’m not actively looking, but I am open to new opportunities": "Abierto a oportunidades",
+	"I am actively looking for a job": "Busca activamente"
+}, inplace=True)
+table = pd.crosstab(index=df_job["JobSat"],columns=df_job["JobSeek"])
+print(table)
+ax= table.plot(kind='line', figsize=(10, 8))
+ax.legend(title="Búsqueda de empleo")
+#ax = df_job.plot.hexbin(x="JobSeek",y="JobSat",gridsize=30,figsize=(10,10))
+plt.title('Relación entre satisfacción de trabajo actual y la búsqueda de un nuevo empleo')
+plt.ylabel('Encuestados')
+plt.xlabel('Valoración de satisfacción laboral')
+plt.savefig('plots/relation_jobs.png')
 
 
